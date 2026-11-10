@@ -1,0 +1,9 @@
+*.aab
+*.apk
+*.ipa
+*.keystore
+*.jks
+*.mobileprovision
+*.p12
+.env
+.env.*
