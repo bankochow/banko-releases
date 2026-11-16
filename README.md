@@ -4,4 +4,6 @@ This public repository is for release-control workflows only. The website, the i
 
 Nothing in a commit here may be app source, photos of guests, a signing key, a store credential, or a build output.
 
-The build that runs today (the site, a debug Android package, and an iOS simulator build) still lives with the private app. Shipping workflows move here once they can fetch that private source without copying it into this repository.
+Order tests run on public `bankochow/banko-ci`. The private app repo does not run GitHub Actions, so it does not burn private Actions minutes or fill Actions storage.
+
+Signed iOS and Android releases are built locally from `bankochow/banko-app` for now. Shipping workflows can move here later if they check out that private source at run time without copying it into this repository.
