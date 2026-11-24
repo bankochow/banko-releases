@@ -15,4 +15,6 @@ Workflow: `.github/workflows/ios-testflight.yml`
 3. Choose the `banko-app` ref (default `main`).
 4. The macOS job builds, signs, and uploads with `altool`. Processing then appears in App Store Connect → TestFlight.
 
+The build number must be higher than the last accepted TestFlight build (currently 40, from the old private-repo workflow). Leave the optional `build_number` input blank to use `40 + GITHUB_RUN_NUMBER`, or set it explicitly (for example `41`).
+
 A browser session on App Store Connect is not used by this job. Android shipping stays local for now.
