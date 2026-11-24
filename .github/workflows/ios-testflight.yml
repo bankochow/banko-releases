@@ -27,6 +27,10 @@ on:
         description: banko-app git ref to build (branch, tag, or SHA)
         required: true
         default: main
+      build_number:
+        description: iOS build number. Must be higher than the last accepted TestFlight build (currently 40). Leave blank to use 40 + GITHUB_RUN_NUMBER.
+        required: false
+        type: string
 
 concurrency:
   group: ios-testflight
@@ -51,6 +55,8 @@ jobs:
     steps:
       - name: Check secrets
         working-directory: .
+        env:
+          REQUESTED_BUILD_NUMBER: ${{ inputs.build_number }}
         run: |
           set -euo pipefail
           missing=0
@@ -72,7 +78,26 @@ jobs:
             echo "Add the secrets listed at the top of .github/workflows/ios-testflight.yml on bankochow/banko-releases, then run again."
             exit 1
           fi
-          IOS_BUILD_NUMBER="$((GITHUB_RUN_NUMBER + 2))"
+          # App Store Connect already accepted 1.1 (40) from the old private-repo
+          # workflow (bankochow/banko-app run 43191492134, 12 Nov 2026).
+          # GITHUB_RUN_NUMBER here started at 1, so the previous +2 offset
+          # produced build 5 on 19 Nov, which cannot supersede 40.
+          LAST_ACCEPTED_BUILD=40
+          if [ -n "${REQUESTED_BUILD_NUMBER:-}" ]; then
+            case "$REQUESTED_BUILD_NUMBER" in
+              ''|*[!0-9]*)
+                echo "build_number must be a positive integer, got: $REQUESTED_BUILD_NUMBER"
+                exit 1
+                ;;
+            esac
+            IOS_BUILD_NUMBER="$REQUESTED_BUILD_NUMBER"
+          else
+            IOS_BUILD_NUMBER="$((GITHUB_RUN_NUMBER + LAST_ACCEPTED_BUILD))"
+          fi
+          if [ "$IOS_BUILD_NUMBER" -le "$LAST_ACCEPTED_BUILD" ]; then
+            echo "Build number $IOS_BUILD_NUMBER is not higher than the last accepted TestFlight build ($LAST_ACCEPTED_BUILD)."
+            exit 1
+          fi
           echo "IOS_BUILD_NUMBER=$IOS_BUILD_NUMBER" >> "$GITHUB_ENV"
           echo "Secrets present. Marketing version stays 1.1. Build number is $IOS_BUILD_NUMBER. Ref: ${{ inputs.app_ref }}"
 
